@@ -58,7 +58,7 @@ public class CompanyService {
     }
 
     public String deleteCompany(String ticker) {
-        var company = this.companyRepository.findByTicker(ticker)
+        var company = companyRepository.findByTicker(ticker)
                 .orElseThrow(NoCompanyException::new);
 
         this.dividendRepository.deleteAllByCompanyId(company.getId());
