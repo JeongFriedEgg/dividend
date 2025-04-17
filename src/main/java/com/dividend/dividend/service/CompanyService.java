@@ -1,5 +1,6 @@
 package com.dividend.dividend.service;
 
+import com.dividend.dividend.exception.impl.NoCompanyException;
 import com.dividend.dividend.model.Company;
 import com.dividend.dividend.model.ScrapedResult;
 import com.dividend.dividend.persist.CompanyRepository;
@@ -54,5 +55,15 @@ public class CompanyService {
 
     public Page<CompanyEntity> getAllCompany(Pageable pageable) {
         return this.companyRepository.findAll(pageable);
+    }
+
+    public String deleteCompany(String ticker) {
+        var company = this.companyRepository.findByTicker(ticker)
+                .orElseThrow(NoCompanyException::new);
+
+        this.dividendRepository.deleteAllByCompanyId(company.getId());
+        this.companyRepository.delete(company);
+
+        return company.getName();
     }
 }

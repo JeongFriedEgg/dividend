@@ -35,4 +35,10 @@ public class CompanyController {
 
         return ResponseEntity.ok(company);
     }
+
+    @DeleteMapping("/{ticker}")
+    public ResponseEntity<?> deleteCompany(@PathVariable String ticker) {
+        String companyName = this.companyService.deleteCompany(ticker);
+        return ResponseEntity.ok(companyName);
+    }
 }
