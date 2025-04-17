@@ -1,14 +1,18 @@
 package com.dividend.dividend.controller;
 
 import com.dividend.dividend.model.Company;
+import com.dividend.dividend.model.constants.CacheKey;
 import com.dividend.dividend.persist.entity.CompanyEntity;
 import com.dividend.dividend.service.CompanyService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.CacheManager;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.ObjectUtils;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.Objects;
 
 @RestController
 @RequestMapping("/company")
@@ -16,6 +20,8 @@ import org.springframework.web.bind.annotation.*;
 public class CompanyController {
 
     private final CompanyService companyService;
+
+    private final CacheManager redisCacheManager;
 
     @GetMapping("/autocomplete")
     public ResponseEntity<?> autocomplete(@RequestParam String keyword) {
@@ -48,6 +54,11 @@ public class CompanyController {
     @DeleteMapping("/{ticker}")
     public ResponseEntity<?> deleteCompany(@PathVariable String ticker) {
         String companyName = companyService.deleteCompany(ticker);
+        clearFinanceCache(companyName);
         return ResponseEntity.ok(companyName);
+    }
+
+    public void clearFinanceCache(String companyName) {
+        Objects.requireNonNull(this.redisCacheManager.getCache(CacheKey.KEY_FINANCE)).evict(companyName);
     }
 }
