@@ -31,7 +31,7 @@ dependencies {
 
 	implementation("com.h2database:h2:2.2.224")
 	implementation("org.jsoup:jsoup:1.18.3")
-
+	implementation("io.jsonwebtoken:jjwt-api:0.12.6")
 	implementation group: 'org.apache.commons', name: 'commons-collections4', version: '4.3'
 
 	compileOnly 'org.projectlombok:lombok'
