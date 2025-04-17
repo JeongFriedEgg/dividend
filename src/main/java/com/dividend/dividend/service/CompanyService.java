@@ -9,6 +9,7 @@ import com.dividend.dividend.persist.entity.CompanyEntity;
 import com.dividend.dividend.persist.entity.DividendEntity;
 import com.dividend.dividend.scraper.Scraper;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.collections4.Trie;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -21,9 +22,18 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class CompanyService {
 
+    private final Trie trie;
+
     private final Scraper yahooFinanceScraper;
     private final CompanyRepository companyRepository;
     private final DividendRepository dividendRepository;
+
+    public List<String> autocomplete(String keyword) {
+        return (List<String>) trie.prefixMap(keyword).keySet()
+                .stream()
+                .limit(10)
+                .collect(Collectors.toList());
+    }
 
     public Company save(String ticker) {
         boolean exists = companyRepository.existsByTicker(ticker);
@@ -53,17 +63,27 @@ public class CompanyService {
         return company;
     }
 
+    public void addAutocompleteKeyword(String keyword) {
+        trie.put(keyword, null);
+    }
+
     public Page<CompanyEntity> getAllCompany(Pageable pageable) {
-        return this.companyRepository.findAll(pageable);
+        return companyRepository.findAll(pageable);
     }
 
     public String deleteCompany(String ticker) {
         var company = companyRepository.findByTicker(ticker)
                 .orElseThrow(NoCompanyException::new);
 
-        this.dividendRepository.deleteAllByCompanyId(company.getId());
-        this.companyRepository.delete(company);
+        dividendRepository.deleteAllByCompanyId(company.getId());
+        companyRepository.delete(company);
+
+        deleteAutocompleteKeyword(company.getName());
 
         return company.getName();
+    }
+
+    public void deleteAutocompleteKeyword(String keyword) {
+        trie.remove(keyword);
     }
 }
